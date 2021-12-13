@@ -39,6 +39,11 @@ namespace tree_gen {
             this->child_addable = true;
         }
 
+        // getter for data.
+        T getData() {
+            return data;
+        }
+
         // getter for id.
         int getId() {
             return this->id;
@@ -161,15 +166,15 @@ namespace tree_gen {
             }
 
             // probability of adding current_node at any parent.
-            int probab = total_nodes - 1 - non_addable;
+            int probab = total_nodes - non_addable;
 
             // utility function to add node.
             return addNodeUtil(current_node, head, probab);
         }
 
         // function to return edges in form of ids of node.
-        vector<pair<int, int>> getEdges() {
-            vector<pair<int, int>> edges;
+        vector<pair<Node<N> *, Node<N> *>> getEdges() {
+            vector<pair<Node<N> *, Node<N> *>> edges;
 
             queue<Node<N> *> q;
             if (head != nullptr)
@@ -183,7 +188,7 @@ namespace tree_gen {
                     q.pop();
 
                     for (auto child : current_node->getChildren()) {
-                        edges.push_back({current_node->getId(), child->getId()});
+                        edges.push_back({current_node, child});
 
                         q.push(child);
                     }
@@ -221,7 +226,7 @@ namespace tree_gen {
 
                 if(!canAddMore(current_node)) {
                     non_addable++;
-                    parent->setchild_addable(false);
+                    current_node->setchild_addable(false);
                 }
 
                 // node is added.

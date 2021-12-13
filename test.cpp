@@ -3,27 +3,43 @@
 #include "tree_generator.h"
 using namespace std;
 using namespace tree_gen;
-template<> int Node<int>::id_gen = 0;
+
+class RandNumbers {
+    int rand1;
+    int rand2;
+    
+public:
+    RandNumbers(int rand1, int rand2) : rand1(rand1), rand2(rand2) {}
+};
+
+template<> int Node<RandNumbers>::id_gen = 0;
 
 int main() {
 
-    Tree<int> t; // with default constructor, no limit on out degree and depth.
-    for(int i = 1; i <= 30; i++) {
-        t.addNode(i);
+    // default constructor.
+    Tree<RandNumbers> t(3, 3);
+    
+    // adding class to tree.
+    for(int i = 0; i < 50; i++) {
+        t.addNode(RandNumbers(rand() % 100, rand() % 100));
     }
 
-    Tree<int> t1(3, 5); // with max_out_degree, max_depth
-    for(int i = 1; i <= 20; i++) {
-        t1.addNode(i);
-    }
-
-    for(auto edge : t.getEdges()) {
-        cout << edge.first << ' ' << edge.second << '\n';
-    }
-
-    cout << '\n';
-
-    for(auto edge : t1.getEdges()) {
-        cout << edge.first << ' ' << edge.second << '\n';
+    // taking the edges.
+    auto edges = t.getEdges();
+    
+    for(auto edge : edges) {
+        auto *parent = edge.first;
+        auto *child = edge.second;
+        
+        int parentId = parent->getId();
+        int childId = child->getId();
+        
+        RandNumbers parentObj = parent->getData();
+        RandNumbers childObj = parent->getData();
+        
+        int parentDepth = parent->getDepth();
+        int childDepth = child->getDepth();
+        
+        cout << parentId << ' ' << childId << '\n';
     }
 }
