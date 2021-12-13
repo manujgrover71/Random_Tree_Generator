@@ -20,7 +20,7 @@ using namespace tree_gen
 ```cpp
 template<> int Node< **class name** >::id_gen = 0;
 ```
-- See [Usage](https://github.com/manujgrover71/Random_Tree_Generator/new/main?readme#usage) section for functions info.
+- See [Usage](https://github.com/manujgrover71/Random_Tree_Generator/blob/main/README.md#usage) section for functions info.
 - Compile the program
 ```shell
 g++ -o <name-the-executable> <cpp-file-name>
