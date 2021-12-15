@@ -12,8 +12,6 @@ public:
     RandNumbers(int rand1, int rand2) : rand1(rand1), rand2(rand2) {}
 };
 
-template<> int Node<RandNumbers>::id_gen = 0;
-
 int main() {
 
     // default constructor.
@@ -27,15 +25,14 @@ int main() {
     // taking the edges.
     auto edges = t.getEdges();
     
+    set<long long> st;
+    
     for(auto edge : edges) {
         auto *parent = edge.first;
         auto *child = edge.second;
         
-        int parentId = parent->getId();
-        int childId = child->getId();
-        
-        RandNumbers parentObj = parent->getData();
-        RandNumbers childObj = parent->getData();
+        long long parentId = parent->getId();
+        long long childId = child->getId();
         
         int parentDepth = parent->getDepth();
         int childDepth = child->getDepth();

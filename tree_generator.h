@@ -5,20 +5,30 @@
 #include <random>
 #include <ctime>
 #include <queue>
+#include <chrono>
 using namespace std;
+using namespace chrono;
 
 namespace tree_gen {
+    
+    mt19937 gen(time(0));
+    uniform_int_distribution<long long> distr(0, 1e18);
+    
+    int getRandInRange(long long min, long long max) {
+        if(min == 0 && max == 0) {
+            return 0;
+        }
+        return min + (distr(gen) % (max - min + 1));
+    }
 
     template<typename T>
-    class Node {
+    struct Node {
         // unique id for current node.
-        int id{};
+        long long id{};
         // data for current node.
         T data;
         // list of children of current node.
         vector<Node *> children;
-
-        static int id_gen;
 
         // current out degree
         int out{};
@@ -31,21 +41,19 @@ namespace tree_gen {
 
     public:
         explicit Node(T data) : data(data) {
-            this->id = ++id_gen;
+            
+            // generate a unique id.
+            long long current_time = duration_cast<nanoseconds>(high_resolution_clock::now().time_since_epoch()).count();
+            this->id = current_time + getRandInRange(1e16, 1e17 - 1);
 
             // initialize the requirements.
             this->out = 0;
             this->depth = -1;
             this->child_addable = true;
         }
-
-        // getter for data.
-        T getData() {
-            return data;
-        }
-
+        
         // getter for id.
-        int getId() {
+        long long getId() {
             return this->id;
         }
 
@@ -108,7 +116,7 @@ namespace tree_gen {
         int max_out{};
 
         // for generating random numbers
-        mt19937 gen;
+        
         
         static const int INF = 1e9;
 
@@ -117,9 +125,6 @@ namespace tree_gen {
             // initialize head with null.
             this->head = nullptr;
 
-            // seed for random generation
-            this->gen = mt19937(time(0));
-
             // initialize the variables.
             this->non_addable = 0;
             this->total_nodes = 0;
@@ -127,6 +132,7 @@ namespace tree_gen {
             // for default constructor
             this->max_out = INF;
             this->max_depth = INF;
+            
         }
 
 
@@ -166,7 +172,7 @@ namespace tree_gen {
             }
 
             // probability of adding current_node at any parent.
-            int probab = total_nodes - non_addable;
+            int probab = total_nodes - non_addable - head->canAddChildren();
 
             // utility function to add node.
             return addNodeUtil(current_node, head, probab);
@@ -282,13 +288,6 @@ namespace tree_gen {
 
             // randomness
             return getRandInRange(0, probab) == 0;
-
-        }
-
-        // function that returns a random number between range [min, max]
-        int getRandInRange(int min, int max) {
-            uniform_int_distribution<int> distr(min, max);
-            return distr(gen);
         }
     };
 }

@@ -120,14 +120,13 @@ for(auto edge : edges) {
 | Function Name / Declaration | Return Type | Syntax | Use |
 | --- | --- | --- | --- |
 | Parameterized constructor | void | Node<MyClass> node(data)| Creates a Node Object with data. |
-| getData() | MyClass | nodeObj.getData() | Returns the data stored in the Node Object. |
-| getId() | int | nodeObj.getId() | Returs the unique id that identifies the current node object. |
+| getId() | long long | nodeObj.getId() | Returs the unique id that identifies the current node object. |
 | getOutDegree() | int | nodeObj.getOutDegree() | Returns the current out degree of the given node object. |
 | getDepth() | int | nodeObj.getDepth() | Returns the current Depth of given node object. |
 | setDepth() | void | nodeObj.getDepth(depth) | Used to set the current depth of node object. |
 | canAddChildren() | bool | nodeObj.canAddChildren() | Returns whether we can add a new child to current node. |
 | addChild() | void | nodeObj.addChild(child) | Adds a new child to current Node |
-| getChildren() | vector<Node<MyClass> *> | nodeObj.getChildren() | Returns a list of children of current node. |
+| getChildren() | ```vector<Node<MyClass> *>``` | nodeObj.getChildren() | Returns a list of children of current node. |
 
 ## Demo:
   Here is the test file: [demo.cpp](https://github.com/manujgrover71/Random_Tree_Generator/blob/main/test.cpp)
