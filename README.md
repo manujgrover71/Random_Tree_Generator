@@ -115,18 +115,15 @@ for(auto edge : edges) {
 
 ```
 
-- Node Class:
+- Node Struct:
 
-| Function Name / Declaration | Return Type | Syntax | Use |
-| --- | --- | --- | --- |
-| Parameterized constructor | void | Node<MyClass> node(data)| Creates a Node Object with data. |
-| getId() | long long | nodeObj.getId() | Returs the unique id that identifies the current node object. |
-| getOutDegree() | int | nodeObj.getOutDegree() | Returns the current out degree of the given node object. |
-| getDepth() | int | nodeObj.getDepth() | Returns the current Depth of given node object. |
-| setDepth() | void | nodeObj.getDepth(depth) | Used to set the current depth of node object. |
-| canAddChildren() | bool | nodeObj.canAddChildren() | Returns whether we can add a new child to current node. |
-| addChild() | void | nodeObj.addChild(child) | Adds a new child to current Node |
-| getChildren() | ```vector<Node<MyClass> *>``` | nodeObj.getChildren() | Returns a list of children of current node. |
+| Field name | Data Type  | Use |
+| --- | --- | --- |
+| id | long long | A unique id that identifies the current node. |
+| out | int | The current out degree of the given node. |
+| depth | int | The current Depth of given node. |
+| child_addable | bool | A boolean to represent whether we can add a new child to current node. |
+| children | vector<Node<MyClass> *> | List to store all the children of current node. |
 
 ## Demo:
   Here is the test file: [demo.cpp](https://github.com/manujgrover71/Random_Tree_Generator/blob/main/test.cpp)

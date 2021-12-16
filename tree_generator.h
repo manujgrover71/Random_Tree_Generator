@@ -5,6 +5,7 @@
 #include <random>
 #include <ctime>
 #include <queue>
+#include <stdexcept>
 #include <chrono>
 using namespace std;
 using namespace chrono;
@@ -14,11 +15,17 @@ namespace tree_gen {
     mt19937 gen(time(0));
     uniform_int_distribution<long long> distr(0, 1e18);
     
+    const long long current_time = duration_cast<nanoseconds>(high_resolution_clock::now().time_since_epoch()).count();
+    
     int getRandInRange(long long min, long long max) {
         if(min == 0 && max == 0) {
             return 0;
         }
         return min + (distr(gen) % (max - min + 1));
+    }
+
+    long long getUUID() {
+        return current_time + getRandInRange(1e16, 1e17 - 1);
     }
 
     template<typename T>
@@ -39,62 +46,14 @@ namespace tree_gen {
         // boolean to represent if mode childen could be added.
         bool child_addable{};
 
-    public:
         explicit Node(T data) : data(data) {
-            
-            // generate a unique id.
-            long long current_time = duration_cast<nanoseconds>(high_resolution_clock::now().time_since_epoch()).count();
-            this->id = current_time + getRandInRange(1e16, 1e17 - 1);
+            // get a unique id.
+            this->id = getUUID();
 
             // initialize the requirements.
             this->out = 0;
             this->depth = -1;
             this->child_addable = true;
-        }
-        
-        // getter for id.
-        long long getId() {
-            return this->id;
-        }
-
-        // getter for out degree
-        int getOutDegree() {
-            return this->out;
-        }
-
-        // increment out degree of current node
-        void incrementOutDegree() {
-            this->out++;
-        }
-
-        // getter for depth of current node.
-        int getDepth() {
-            return this->depth;
-        }
-
-        // setter for depth of current node.
-        void setDepth(int depth) {
-            this->depth = depth;
-        }
-
-        // getter for addableChildren bool
-        bool canAddChildren() {
-            return child_addable;
-        }
-
-        // setter for addableChildren bool
-        void setchild_addable(bool status) {
-            this->child_addable = status;
-        }
-
-        // add child.
-        void addChild(Node<T> *child) {
-            children.push_back(child);
-        }
-
-        // getter for children
-        vector<Node *> getChildren() {
-            return this->children;
         }
     };
 
@@ -102,7 +61,7 @@ namespace tree_gen {
     class Tree {
 
         // root of tree
-        Node<N> *head;      
+        Node<N> *head;
 
         //  number of nodes which can not have more children.
         int non_addable{};
@@ -114,11 +73,11 @@ namespace tree_gen {
         // just add more constraints...
         int max_depth{};
         int max_out{};
-
-        // for generating random numbers
-        
         
         static const int INF = 1e9;
+        
+        // list to store all nodes which can have more children.
+        vector<Node<N> *> valid_parents;
 
     public:
         Tree() {
@@ -131,8 +90,7 @@ namespace tree_gen {
 
             // for default constructor
             this->max_out = INF;
-            this->max_depth = INF;
-            
+            this->max_depth = INF;            
         }
 
 
@@ -162,20 +120,61 @@ namespace tree_gen {
                 head = current_node;
 
                 // make depth 1.
-                head->setDepth(1);
+                head->depth = 1;
 
                 // increase total_nodes.
                 this->total_nodes++;
-
+                
+                // if head can have more children, add to valid_parents list.
+                if(canAddMore(head)) {
+                    valid_parents.push_back(head);
+                }
+            
                 // node is added.
                 return true;
             }
-
-            // probability of adding current_node at any parent.
-            int probab = total_nodes - non_addable - head->canAddChildren();
-
-            // utility function to add node.
-            return addNodeUtil(current_node, head, probab);
+            
+            // if no parent is there, we cannot add new child.
+            if(valid_parents.empty()) {
+                return false;
+            }
+            
+            // take a random parent.
+            int toChoose = getRandInRange(0, (int)valid_parents.size() - 1);
+            
+            // move that parent to last of list, so that removing can be done in O(1) if required.
+            swap(valid_parents[toChoose], valid_parents.back());
+            
+            // take the parent.
+            Node<N> *parent = valid_parents.back();
+            
+            // increase the out degree.
+            parent->out++;
+            
+            // add current node as child of parent.
+            parent->children.push_back(current_node);
+            
+            // set the depth of child to parent_depth + 1.
+            current_node->depth = parent->depth + 1;
+            
+            // if the parent cannot have more children, remove it from the list.
+            if(!canAddMore(parent)) {
+                valid_parents.pop_back();
+                parent->child_addable = false;
+            }
+            
+            // if current node can have children, add it to the list.
+            if(canAddMore(current_node)) {
+                valid_parents.push_back(current_node);
+            } else {
+                current_node->child_addable = false;
+            }
+            
+            // increase the total_nodes count.
+            this->total_nodes++;
+            
+            // new node has been added.
+            return true;
         }
 
         // function to return edges in form of ids of node.
@@ -193,7 +192,7 @@ namespace tree_gen {
                     auto current_node = q.front();
                     q.pop();
 
-                    for (auto child : current_node->getChildren()) {
+                    for (auto child : current_node->children) {
                         edges.push_back({current_node, child});
 
                         q.push(child);
@@ -206,88 +205,19 @@ namespace tree_gen {
 
     private:
 
-
-        bool addNodeUtil(Node<N> *current_node, Node<N> *parent, int &probab) {
-
-            // check if we could add current element as child of parent node.
-            if(parent->canAddChildren() && isAddable(parent, probab)) {
-
-                // add child to parent.
-                parent->addChild(current_node);
-
-                // increase out degree of parent node.
-                parent->incrementOutDegree();
-
-                // set depth of curret node.
-                current_node->setDepth(parent->getDepth() + 1);
-
-                // increment the total nodes count.
-                total_nodes++;
-
-                // check of addability of parent and current node.
-                if(!canAddMore(parent)) {
-                    non_addable++;
-                    parent->setchild_addable(false);
-                }
-
-                if(!canAddMore(current_node)) {
-                    non_addable++;
-                    current_node->setchild_addable(false);
-                }
-
-                // node is added.
-                return true;
-            }
-
-            // traverse down the path to check for other places.
-            if(parent->getDepth() + 1 <= max_depth) {
-
-                for(auto child : parent->getChildren()) {
-                    // update the probability
-                    probab -= child->canAddChildren();
-
-                    // check children of parent node.
-                    if(addNodeUtil(current_node, child, probab)) {
-                        return true;
-                    }
-                }
-            }
-
-            // couldn't add in current subtree.
-            return false;
-        }
-
         // function to check if we could add more child to current node.
         // apply extra constraints as needed!!
         bool canAddMore(Node<N> *current_node) {
 
             // depth check
-            if(current_node->getDepth() == max_depth)
+            if(current_node->depth == max_depth)
                 return false;
 
             // out degree check
-            if(current_node->getOutDegree() == max_out)
+            if(current_node->out == max_out)
                 return false;
 
             return true;
-        }
-
-        // function to check if we could add child to current node.
-        // apply extra constraints as needed!!
-        bool isAddable(Node<N> *parent, int probab) {
-
-            // depth check
-            if(parent->getDepth() + 1 > max_depth) {
-                return false;
-            }
-
-            // max out degree check
-            if(parent->getOutDegree() + 1 > max_out) {
-                return false;
-            }
-
-            // randomness
-            return getRandInRange(0, probab) == 0;
         }
     };
 }
